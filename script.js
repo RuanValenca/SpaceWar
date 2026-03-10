@@ -7,18 +7,18 @@ canvas.height = windowHeight;
 
 context.font = "Press Start 2P";
 
-let bgMusic = new Audio("../sounds/musicDefault.mp3");
+let bgMusic = new Audio("./sounds/musicDefault.mp3");
 bgMusic.loop = true;
 bgMusic.volume = 0.1;
 bgMusic.play();
 
-let shootSoud = new Audio("../sounds/laserShoot.wav");
+let shootSoud = new Audio("./sounds/laserShoot.wav");
 shootSoud.volume = 0.2;
 
-let damageSound = new Audio("../sounds/explosion2.wav");
+let damageSound = new Audio("./sounds/explosion2.wav");
 damageSound.volume = 0.2;
 
-let hitSound = new Audio("../sounds/explosion1.wav");
+let hitSound = new Audio("./sounds/explosion1.wav");
 hitSound.volume = 0.05;
 
 const shipSize = { width: 40, height: 40 };
@@ -50,6 +50,10 @@ let moveRight = false;
 let moveLeft = false;
 
 window.addEventListener("keydown", (e) => {
+  if (!bgMusic.playing) {
+    bgMusic.play().catch(() => {});
+  }
+
   if (e.key === "r" && hearts == 0) {
     restartGame();
   }
@@ -109,25 +113,25 @@ window.addEventListener("keyup", (e) => {
 });
 
 let life = new Image();
-life.src = "../img/util/hearts/fullHeart.png";
+life.src = "./img/util/hearts/fullHeart.png";
 life.onload = () => {
   context.drawImage(life, 0, 0, 40, 40);
 };
 
 let space = new Image();
-space.src = "../img/util/bg/space.png";
+space.src = "./img/util/bg/space.png";
 space.onload = () => {
   context.drawImage(space, 0, 0, canvas.width, canvas.height);
 };
 
 let ship = new Image();
-ship.src = "../img/ships/defaultBlue.png";
+ship.src = "./img/ships/defaultBlue.png";
 ship.onload = () => {
   context.drawImage(ship, canvas.width / 2 - 10, 80 - 10, 20, 20);
 };
 
 let enemyAsteroid1 = new Image();
-enemyAsteroid1.src = "../img/enemies/asteroidGray.png";
+enemyAsteroid1.src = "./img/enemies/asteroidGray.png";
 enemyAsteroid1.onload = () => {
   context.drawImage(enemyAsteroid1, canvas.width / 2 - 10, 80 - 10, 20, 20);
 };
