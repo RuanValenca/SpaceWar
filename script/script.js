@@ -1,4 +1,5 @@
 import { drawMenu, setupMenu, gameStarted } from "./menu.js";
+import { showPowerCards } from "./power.js";
 
 // canvas
 let canvas = document.getElementById("canvas");
@@ -56,6 +57,9 @@ let releaseEnemyDelay = 2000;
 let enemySpeed = 1;
 
 let kills = 0;
+let killsNextUpgrade = 2;
+let killsForUpgrade = 2;
+let choosingPower = false;
 let hearts = 3;
 
 let moveUp = false;
@@ -67,6 +71,7 @@ let shakeTime = 0;
 let shakeStrength = 8;
 
 let currentTime = Date.now();
+
 let paused = false;
 
 // input
@@ -173,6 +178,8 @@ function restartGame() {
   enemySpeed = 0.4;
   shipX = canvas.width / 2;
   shipY = canvas.height - 80;
+  killsNextUpgrade = 2;
+  killsForUpgrade = 2;
 }
 
 function drawGame() {
@@ -185,7 +192,7 @@ function drawGame() {
   }
 
   if (paused) {
-    context.fillStyle = "rgba(29, 29, 29, 0.01)";
+    context.fillStyle = "rgba(29, 29, 29, 0.02)";
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "white";
     context.font = "bold 60px 'Press Start 2P'";
@@ -200,6 +207,10 @@ function drawGame() {
   } else {
     audio.style.display = "none";
     sfx.style.display = "none";
+  }
+
+  if (choosingPower) {
+    return;
   }
 
   if (hearts === 0) {
@@ -328,29 +339,10 @@ function drawGame() {
     shakeTime--;
   }
 
-  // // --- tela de derrota ---
-  // if (hearts === 0) {
-  //   context.fillStyle = "rgba(56,18,18,0.06)";
-  //   context.fillRect(0, 0, canvas.width, canvas.height);
-  //   context.fillStyle = "#ff6b6b";
-  //   context.font = "50px 'Press Start 2P'";
-  //   context.fillText("DERROTA", canvas.width / 2, canvas.height / 2);
-  //   context.fillStyle = "white";
-  //   context.font = "16px 'Press Start 2P'";
-  //   context.fillText(
-  //     "KILLS: " + kills,
-  //     canvas.width / 2,
-  //     canvas.height / 2 + 60,
-  //   );
-  //   context.fillStyle = "#cccccc";
-  //   context.font = "20px 'Press Start 2P'";
-  //   context.fillText(
-  //     "Clique em START para reiniciar",
-  //     canvas.width / 2,
-  //     canvas.height / 2 + 90,
-  //   );
-  //   return;
-  // }
+  if (kills >= killsNextUpgrade && !choosingPower) {
+    choosingPower = true;
+    showPowerCards();
+  }
 
   // lançar novos inimigos
   currentTime = Date.now();
@@ -369,3 +361,10 @@ function gameLoop() {
 }
 
 gameLoop();
+
+export function resumeGame() {
+  choosingPower = false;
+
+  killsForUpgrade *= 2;
+  killsNextUpgrade += killsForUpgrade;
+}
