@@ -12,6 +12,7 @@ O jogador controla uma nave, atira em asteroides e tenta sobreviver o máximo po
 - Tela de derrota com contagem de kills  
 - Controle de vidas com corações  
 - Movimento da nave e limite da tela  
+- Sistema de Upgrade de personagem por quantidade de kills  
 - Efeito de tela “tremendo” quando a nave leva dano  
 
 As fontes são estilizadas com **Press Start 2P**, para efeito pixelado clássico.
@@ -21,18 +22,19 @@ As fontes são estilizadas com **Press Start 2P**, para efeito pixelado clássic
 ## Estrutura de Pastas
 
 ```text
-spaceWar/
-│
-├─ index.html
-├─ styles.css
-├─ main.js  
-├─ img/
-│   ├─ bg/
-│   ├─ ships/
-│   ├─ enemies/
-│   └─ util/
-└─ sounds/
-    ├─ musicDefault.mp3
-    ├─ laserShoot.wav
-    ├─ explosion1.mp3
-    └─ explosion2.mp3
+
+📦SpaceWar
+ ┣ 📂img
+ ┃ ┣ 📂enemies
+ ┃ ┣ 📂ships
+ ┃ ┣ 📂util
+ ┃ ┃ ┣ 📂bg
+ ┃ ┃ ┣ 📂effects
+ ┃ ┃ ┣ 📂hearts
+ ┃ ┃ ┣ 📂icons
+ ┃ ┃ ┗ 📂numbers
+ ┣ 📂script
+ ┣ 📂sounds
+ ┣ 📜index.html
+ ┣ 📜README.md
+ ┗ 📜styles.css

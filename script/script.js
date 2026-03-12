@@ -39,22 +39,64 @@ life.src = "./img/util/hearts/fullHeart.png";
 let enemyAsteroid1 = new Image();
 enemyAsteroid1.src = "./img/enemies/asteroidGray.png";
 
+let enemyAsteroid2 = new Image();
+enemyAsteroid2.src = "./img/enemies/asteroidBrown.png";
+
 // variáveis do jogo
 const shipSize = { width: 40, height: 40 };
-const enemyDefSize = { width: 40, height: 40 };
+
+let currentTime = Date.now();
+let paused = false;
+
+const initialState = {
+  player: {
+    speed: 3,
+    dash: false,
+    doubleShot: false,
+    shotDamage: 0.2,
+    reflectedBullets: false,
+    shield: 0,
+    shotDelay: 500,
+    slowPower: false,
+  },
+  enemy: {
+    enemies: [],
+    lastEnemyReleased: 0,
+    releaseEnemyDelay: 2000,
+    enemySpeed: 0.2,
+    life: 1,
+    value: 1,
+    size: { width: 40, height: 40 },
+  },
+  enemy2: {
+    enemies2: [],
+    lastEnemyReleased2: 0,
+    releaseEnemyDelay2: 150000,
+    enemySpeed: 0.5,
+    life: 3,
+    damage: 1,
+    value: 3,
+    size: {
+      width: 70,
+      height: 70,
+    },
+  },
+};
+
+export const playerState = { ...initialState.player };
+
+export const enemyState = { ...initialState.enemy };
+
+export const enemyState2 = { ...initialState.enemy2 };
 
 let shipX = canvas.width / 2;
 let shipY = canvas.height - 80;
-let speed = 5;
 
-let bullets = [];
-let lastShotTime = 0;
-let shotDelay = 300;
+let shipRotation = 0;
+let targetRotation = 0;
 
-let enemies = [];
-let lastEnemyReleased = 0;
-let releaseEnemyDelay = 2000;
-let enemySpeed = 1;
+let dashDelay = 1000;
+let lastTimeDashed = 0;
 
 let kills = 0;
 let killsNextUpgrade = 2;
@@ -67,12 +109,11 @@ let moveDown = false;
 let moveRight = false;
 let moveLeft = false;
 
+let bullets = [];
+let lastShotTime = 0;
+
 let shakeTime = 0;
 let shakeStrength = 8;
-
-let currentTime = Date.now();
-
-let paused = false;
 
 // input
 window.addEventListener("keydown", (e) => {
@@ -81,16 +122,28 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "r" && hearts === 0) restartGame();
   if (e.key === "p") paused = !paused;
 
+  if (playerState.dash == true && e.key == "Shift") {
+    if (Date.now() - lastTimeDashed > dashDelay) {
+      lastTimeDashed = Date.now();
+      playerState.speed = 15;
+      setTimeout(() => {
+        playerState.speed = 5;
+      }, 100);
+    }
+  }
+
   switch (e.key) {
     case " ":
       shoot();
       break;
     case "a":
     case "ArrowLeft":
+      targetRotation = -0.4;
       moveLeft = true;
       break;
     case "d":
     case "ArrowRight":
+      targetRotation = 0.4;
       moveRight = true;
       break;
     case "w":
@@ -108,10 +161,15 @@ window.addEventListener("keyup", (e) => {
   switch (e.key) {
     case "a":
     case "ArrowLeft":
+      shipRotation = 0;
+      targetRotation = 0;
+
       moveLeft = false;
       break;
     case "d":
     case "ArrowRight":
+      shipRotation = 0;
+      targetRotation = 0;
       moveRight = false;
       break;
     case "w":
@@ -151,7 +209,7 @@ audio.addEventListener("click", () => {
 
 // funções do jogo
 function shoot() {
-  if (Date.now() - lastShotTime > shotDelay) {
+  if (Date.now() - lastShotTime > playerState.shotDelay) {
     bullets.push({ x: shipX + shipSize.width / 2, y: shipY });
     lastShotTime = Date.now();
     shootSound.play();
@@ -159,25 +217,55 @@ function shoot() {
 }
 
 function releaseEnemy() {
-  if (Date.now() - lastEnemyReleased > releaseEnemyDelay) {
-    enemies.push({
-      x: Math.random() * (canvas.width - enemyDefSize.width),
+  if (
+    Date.now() - enemyState.lastEnemyReleased >
+    enemyState.releaseEnemyDelay
+  ) {
+    enemyState.enemies.push({
+      x: Math.random() * (canvas.width - initialState.enemy.size.width),
       y: -50,
       rotation: 0,
+      life: initialState.enemy.life,
+      damage: 1,
+      speed: initialState.enemy.enemySpeed,
+      size: initialState.enemy.size,
+      sprite: enemyAsteroid1,
     });
-    lastEnemyReleased = Date.now();
-    if (kills > 10) enemySpeed += 0.1;
+
+    enemyState.lastEnemyReleased = Date.now();
+  }
+
+  if (
+    kills > 10 &&
+    Date.now() - enemyState2.lastEnemyReleased2 > enemyState2.releaseEnemyDelay2
+  ) {
+    enemyState.enemies.push({
+      x: Math.random() * (canvas.width - initialState.enemy2.size.width),
+      y: -50,
+      rotation: 0,
+      life: initialState.enemy2.life,
+      damage: initialState.enemy2.damage,
+      speed: initialState.enemy2.enemySpeed,
+      size: initialState.enemy2.size,
+      sprite: enemyAsteroid2,
+    });
+
+    enemyState2.lastEnemyReleased2 = Date.now();
   }
 }
 
 function restartGame() {
-  enemies = [];
+  Object.assign(playerState, initialState.player);
+  Object.assign(enemyState, initialState.enemy);
+  Object.assign(enemyState2, initialState.enemy2);
   bullets = [];
+
   hearts = 3;
   kills = 0;
-  enemySpeed = 0.4;
+
   shipX = canvas.width / 2;
   shipY = canvas.height - 80;
+
   killsNextUpgrade = 2;
   killsForUpgrade = 2;
 }
@@ -229,7 +317,7 @@ function drawGame() {
     context.fillStyle = "#cccccc";
     context.font = "20px 'Press Start 2P'";
     context.fillText(
-      "Clique em START para reiniciar",
+      "Clique em R para reiniciar",
       canvas.width / 2,
       canvas.height / 2 + 90,
     );
@@ -260,16 +348,44 @@ function drawGame() {
   }
 
   // movimentação da nave
-  if (moveLeft) shipX -= speed;
-  if (moveRight) shipX += speed;
-  if (moveUp) shipY -= speed;
-  if (moveDown) shipY += speed;
+  if (moveLeft) {
+    shipX -= playerState.speed;
+  }
+
+  if (moveRight) {
+    shipX += playerState.speed;
+  }
+
+  if (moveUp) {
+    shipY -= playerState.speed;
+    shipRotation = 0;
+  }
+  if (moveDown) {
+    shipY += playerState.speed;
+    shipRotation = 0;
+  }
+
+  shipRotation += (targetRotation - shipRotation) * 0.2;
 
   // limites da nave
   shipX = Math.max(0, Math.min(shipX, canvas.width - shipSize.width));
   shipY = Math.max(0, Math.min(shipY, canvas.height - shipSize.height));
 
-  context.drawImage(ship, shipX, shipY, shipSize.width, shipSize.height);
+  context.save();
+
+  context.translate(shipX + shipSize.width / 2, shipY + shipSize.height / 2);
+
+  context.rotate(shipRotation);
+
+  context.drawImage(
+    ship,
+    -shipSize.width / 2,
+    -shipSize.height / 2,
+    shipSize.width,
+    shipSize.height,
+  );
+
+  context.restore();
 
   // tiros
   bullets.forEach((b, i) => {
@@ -284,51 +400,64 @@ function drawGame() {
 
   // colisões
   for (let i = bullets.length - 1; i >= 0; i--) {
-    for (let j = enemies.length - 1; j >= 0; j--) {
+    for (let j = enemyState.enemies.length - 1; j >= 0; j--) {
+      let e = enemyState.enemies[j];
+
       if (
-        bullets[i].x > enemies[j].x &&
-        bullets[i].x < enemies[j].x + enemyDefSize.width &&
-        bullets[i].y > enemies[j].y &&
-        bullets[i].y < enemies[j].y + enemyDefSize.height
+        bullets[i].x > e.x &&
+        bullets[i].x < e.x + e.size.width &&
+        bullets[i].y > e.y &&
+        bullets[i].y < e.y + e.size.height
       ) {
         hitSound.currentTime = 0;
         hitSound.play();
-        enemies.splice(j, 1);
+
+        e.life -= playerState.shotDamage;
+
         bullets.splice(i, 1);
-        kills++;
+
+        if (e.life <= 0) {
+          enemyState.enemies.splice(j, 1);
+          kills++;
+        }
+
         break;
       }
     }
   }
 
   // inimigos
-  enemies.forEach((e, i) => {
-    e.y += enemySpeed;
-    e.rotation += 0.02;
+  enemyState.enemies.forEach((e, i) => {
+    e.y += e.speed;
+    e.rotation += 0.01;
 
     context.save();
-    context.translate(
-      e.x + enemyDefSize.width / 2,
-      e.y + enemyDefSize.height / 2,
-    );
+
+    context.translate(e.x + e.size.width / 2, e.y + e.size.height / 2);
+
     context.rotate(e.rotation);
+
     context.drawImage(
-      enemyAsteroid1,
-      -enemyDefSize.width / 2,
-      -enemyDefSize.height / 2,
-      enemyDefSize.width,
-      enemyDefSize.height,
+      e.sprite,
+      -e.size.width / 2,
+      -e.size.height / 2,
+      e.size.width,
+      e.size.height,
     );
+
     context.restore();
 
-    // colisão com o fundo da tela
+    // colisão com fundo
     if (e.y > canvas.height) {
       damageSound.currentTime = 0;
       damageSound.play();
-      enemies.splice(i, 1);
-      hearts--;
+
+      enemyState.enemies.splice(i, 1);
+
+      hearts -= e.damage;
+
       if (hearts > 0) {
-        shakeTime = 15; // shake só enquanto ainda tem vida
+        shakeTime = 15;
       }
     }
   });

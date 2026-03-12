@@ -1,11 +1,71 @@
-import { resumeGame } from "./script.js";
+import { resumeGame, playerState } from "./script.js";
 var cardPower = document.getElementById("cardPower");
 
-const powers = [
-  { id: "doubleShot", name: "DOUBLE SHOT", desc: "atira 2 tiros" },
-  { id: "rapidFire", name: "RAPID FIRE", desc: "diminui delay do tiro" },
-  { id: "shield", name: "SHIELD", desc: "bloqueia 1 dano" },
-  { id: "bigBullet", name: "BIG BULLET", desc: "tiro maior" },
+export const powers = [
+  {
+    id: "damageUp",
+    name: "Dano Aumentado",
+    desc: "aumenta o dano dos tiros",
+    effect: () => {
+      playerState.shotDamage = 0.3;
+    },
+  },
+  {
+    id: "rapidFire",
+    name: "Fogo Rápido",
+    desc: "diminui delay do tiro",
+    effect: () => {
+      playerState.shotDelay = 300;
+    },
+  },
+  {
+    id: "boucingBullets",
+    name: "Projétil com Ricochete",
+    desc: "tiros ricocheteiam nas paredes e inimigos",
+    effect: () => {
+      playerState.shotDelay = 300;
+    },
+  },
+  {
+    id: "bombs",
+    name: "Bombas",
+    desc: "lança bombas que explodem ao atingir inimigos ou o chão",
+    effect: () => {
+      playerState.shotDelay = 300;
+    },
+  },
+  {
+    id: "shield",
+    name: "Escudo",
+    desc: "bloqueia 1 dano",
+    effect: () => {
+      playerState.shield++;
+    },
+  },
+  {
+    id: "reflectedBullets",
+    name: "Balas Refletidas",
+    desc: "atira projéteis para os lados",
+    effect: () => {
+      playerState.reflectedBullets = true;
+    },
+  },
+  {
+    id: "slowPower",
+    name: "Desaceleração",
+    desc: "desacelera inimigos por um tempo",
+    effect: () => {
+      playerState.slowPower = true;
+    },
+  },
+  {
+    id: "dash",
+    name: "Turbo",
+    desc: "move-se rapidamente em uma direção",
+    effect: () => {
+      playerState.dash = true;
+    },
+  },
 ];
 
 export function showPowerCards() {
@@ -24,6 +84,11 @@ export function showPowerCards() {
 
     card.addEventListener("click", () => {
       console.log("Poder escolhido:", power.id);
+      powers.splice(
+        powers.findIndex((p) => p.id === power.id),
+        1,
+      );
+      power.effect();
       cardPower.style.display = "none";
       resumeGame();
     });
