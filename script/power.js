@@ -34,46 +34,46 @@ export const powers = [
       playerState.bombs = true;
     },
   },
-  // {
-  //   id: "shield",
-  //   name: "Escudo",
-  //   desc: "bloqueia 1 dano",
-  //   effect: () => {
-  //     playerState.shield++;
-  //   },
-  // },
-  // {
-  //   id: "reflectedBullets",
-  //   name: "Balas Refletidas",
-  //   desc: "atira projéteis para os lados",
-  //   effect: () => {
-  //     playerState.reflectedBullets = true;
-  //   },
-  // },
-  // {
-  //   id: "speed",
-  //   name: "Aceleração",
-  //   desc: "aumenta a velocidade da nave",
-  //   effect: () => {
-  //     playerState.speed = 5;
-  //   },
-  // },
-  // {
-  //   id: "slowPower",
-  //   name: "Desaceleração",
-  //   desc: "desacelera inimigos por um tempo",
-  //   effect: () => {
-  //     playerState.slowPower = true;
-  //   },
-  // },
-  // {
-  //   id: "dash",
-  //   name: "Turbo",
-  //   desc: "move-se rapidamente em uma direção",
-  //   effect: () => {
-  //     playerState.dash = true;
-  //   },
-  // },
+  {
+    id: "shield",
+    name: "Escudo",
+    desc: "bloqueia 1 dano",
+    effect: () => {
+      playerState.shield++;
+    },
+  },
+  {
+    id: "reflectedBullets",
+    name: "Balas Refletidas",
+    desc: "atira projéteis para os lados",
+    effect: () => {
+      playerState.reflectedBullets = true;
+    },
+  },
+  {
+    id: "speed",
+    name: "Aceleração",
+    desc: "aumenta a velocidade da nave",
+    effect: () => {
+      playerState.speed = 5;
+    },
+  },
+  {
+    id: "slowPower",
+    name: "Desaceleração",
+    desc: "desacelera inimigos por um tempo",
+    effect: () => {
+      playerState.slowPower = true;
+    },
+  },
+  {
+    id: "dash",
+    name: "Turbo",
+    desc: "move-se rapidamente em uma direção",
+    effect: () => {
+      playerState.dash = true;
+    },
+  },
 ];
 
 export function showPowerCards() {
@@ -91,7 +91,6 @@ export function showPowerCards() {
     `;
 
     card.addEventListener("click", () => {
-      console.log("Poder escolhido:", power.id);
       powers.splice(
         powers.findIndex((p) => p.id === power.id),
         1,

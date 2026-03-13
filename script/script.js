@@ -39,6 +39,9 @@ bomb.src = "./img/util/effects/fireball.png";
 let life = new Image();
 life.src = "./img/util/hearts/fullHeart.png";
 
+let shield = new Image();
+shield.src = "./img/util/hearts/shield (2).png";
+
 let enemyAsteroid1 = new Image();
 enemyAsteroid1.src = "./img/enemies/asteroidGray.png";
 
@@ -76,7 +79,7 @@ const initialState = {
   enemy2: {
     enemies2: [],
     lastEnemyReleased2: 0,
-    releaseEnemyDelay2: 150000,
+    releaseEnemyDelay2: 25000,
     enemySpeed: 0.5,
     life: 3,
     damage: 1,
@@ -88,11 +91,11 @@ const initialState = {
   },
 };
 
-export const playerState = { ...initialState.player };
+export let playerState = { ...initialState.player };
 
-export const enemyState = { ...initialState.enemy };
+export let enemyState = { ...initialState.enemy };
 
-export const enemyState2 = { ...initialState.enemy2 };
+export let enemyState2 = { ...initialState.enemy2 };
 
 let shipX = canvas.width / 2;
 let shipY = canvas.height - 80;
@@ -110,10 +113,15 @@ let choosingPower = false;
 let hearts = 3;
 
 let lastBombTime = 0;
-let bombDelay = 10000;
+let bombDelay = 15000;
 let bombs = [];
 let bombRadius = 100;
 let bombDamage = 2;
+
+let lastSlowPowerTime = 0;
+let slowPowerDelay = 10000;
+let slowPowerDuration = 5000;
+let slowActive = false;
 
 let moveUp = false;
 let moveDown = false;
@@ -136,9 +144,9 @@ window.addEventListener("keydown", (e) => {
   if (playerState.dash == true && e.key == "Shift") {
     if (Date.now() - lastTimeDashed > dashDelay) {
       lastTimeDashed = Date.now();
-      playerState.speed = 15;
+      playerState.speed += 10;
       setTimeout(() => {
-        playerState.speed = 5;
+        playerState.speed -= 5;
       }, 100);
     }
   }
@@ -241,6 +249,30 @@ function spawnBomb() {
   }
 }
 
+function slowPower() {
+  if (!slowActive && Date.now() - lastSlowPowerTime > slowPowerDelay) {
+    slowActive = true;
+    lastSlowPowerTime = Date.now();
+
+    enemyState.enemies.forEach((e) => {
+      e.originalSpeed = e.speed;
+      e.speed *= 0.4;
+    });
+
+    setTimeout(() => {
+      enemyState.enemies.forEach((e) => {
+        if (e.sprite === enemyAsteroid1) {
+          e.speed = initialState.enemy.enemySpeed;
+        } else {
+          e.speed = initialState.enemy2.enemySpeed;
+        }
+      });
+
+      slowActive = false;
+    }, slowPowerDuration);
+  }
+}
+
 function releaseEnemy() {
   if (
     Date.now() - enemyState.lastEnemyReleased >
@@ -255,6 +287,7 @@ function releaseEnemy() {
       speed: initialState.enemy.enemySpeed,
       size: initialState.enemy.size,
       sprite: enemyAsteroid1,
+      hitTime: 0,
     });
 
     enemyState.lastEnemyReleased = Date.now();
@@ -273,6 +306,7 @@ function releaseEnemy() {
       speed: initialState.enemy2.enemySpeed,
       size: initialState.enemy2.size,
       sprite: enemyAsteroid2,
+      hitTime: 0,
     });
 
     enemyState2.lastEnemyReleased2 = Date.now();
@@ -283,15 +317,30 @@ function restartGame() {
   playerState = { ...initialState.player };
   enemyState = { ...initialState.enemy };
   enemyState2 = { ...initialState.enemy2 };
+
+  enemyState.enemies = [];
+  enemyState2.enemies2 = [];
+
   bullets = [];
   bombs = [];
+
   hearts = 3;
   kills = 0;
-  enemySpeed = 0.4;
+
   shipX = canvas.width / 2;
   shipY = canvas.height - 80;
+
   killsNextUpgrade = 2;
   killsForUpgrade = 2;
+
+  lastShotTime = 0;
+  lastBombTime = 0;
+  lastSlowPowerTime = 0;
+  lastTimeDashed = 0;
+
+  choosingPower = false;
+  paused = false;
+  slowActive = false;
 }
 
 function drawGame() {
@@ -371,6 +420,10 @@ function drawGame() {
     context.drawImage(life, i * 50, 10, 40, 40);
   }
 
+  for (let i = 0; i < playerState.shield; i++) {
+    context.drawImage(shield, i * 50, 10, 40, 40);
+  }
+
   // movimentação da nave
   if (moveLeft) {
     shipX -= playerState.speed;
@@ -412,15 +465,22 @@ function drawGame() {
   context.restore();
 
   // tiros
-  bullets.forEach((b, i) => {
-    b.y -= 10;
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    let b = bullets[i];
+    b.x += b.vx || 0;
+    b.y += b.vy || -10;
     context.beginPath();
     context.arc(b.x, b.y, 3, 0, Math.PI * 2);
     context.fillStyle = "white";
     context.fill();
 
     if (b.y < 0) bullets.splice(i, 1);
-  });
+  }
+
+  //desaceleração dos inimigos
+  if (playerState.slowPower) {
+    slowPower();
+  }
 
   // criar bomba
   if (playerState.bombs) {
@@ -448,6 +508,8 @@ function drawGame() {
   // colisões
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = enemyState.enemies.length - 1; j >= 0; j--) {
+      if (bullets[i].ignoreEnemy === j) continue;
+
       let e = enemyState.enemies[j];
 
       if (
@@ -460,6 +522,27 @@ function drawGame() {
         hitSound.play();
 
         e.life -= playerState.shotDamage;
+        e.hitTime = Date.now();
+
+        if (playerState.reflectedBullets && !bullets[i].reflected) {
+          bullets.push({
+            x: bullets[i].x,
+            y: bullets[i].y,
+            vx: -4,
+            vy: -8,
+            reflected: true,
+            ignoreEnemy: j,
+          });
+
+          bullets.push({
+            x: bullets[i].x,
+            y: bullets[i].y,
+            vx: 4,
+            vy: -8,
+            reflected: true,
+            ignoreEnemy: j,
+          });
+        }
 
         bullets.splice(i, 1);
 
@@ -518,6 +601,16 @@ function drawGame() {
 
     context.rotate(e.rotation);
 
+    context.filter = "none";
+
+    if (slowActive) {
+      context.filter = "sepia(1) hue-rotate(180deg) saturate(3)";
+    }
+
+    if (Date.now() - e.hitTime < 30) {
+      context.filter = "brightness(3)";
+    }
+
     context.drawImage(
       e.sprite,
       -e.size.width / 2,
@@ -526,16 +619,23 @@ function drawGame() {
       e.size.height,
     );
 
+    context.filter = "none";
+
     context.restore();
 
     // colisão com fundo
+
     if (e.y > canvas.height) {
       damageSound.currentTime = 0;
       damageSound.play();
 
       enemyState.enemies.splice(i, 1);
 
-      hearts -= e.damage;
+      if (playerState.shield > 0) {
+        playerState.shield -= e.damage;
+      } else {
+        hearts -= e.damage;
+      }
 
       if (hearts > 0) {
         shakeTime = 15;

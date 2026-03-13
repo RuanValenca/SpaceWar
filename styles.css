@@ -7,6 +7,7 @@
 html,
 body {
   width: 100%;
+  font-family: "Press Start 2P", cursive;
   height: 100%;
   overflow: hidden;
   background: black;
@@ -63,7 +64,9 @@ canvas {
   align-items: center;
   gap: 40px;
 }
+
 .card {
+  height: 200px;
   width: 220px;
   padding: 20px;
   background: #1a1a1a;
@@ -71,9 +74,12 @@ canvas {
   color: white;
   text-align: center;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .card:hover {
   transform: scale(1.1);
-  border-color: yellow;
+  border-color: aqua;
 }
