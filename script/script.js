@@ -33,6 +33,9 @@ space.src = "./img/util/bg/space.png";
 let ship = new Image();
 ship.src = "./img/ships/defaultBlue.png";
 
+let bomb = new Image();
+bomb.src = "./img/util/effects/fireball.png";
+
 let life = new Image();
 life.src = "./img/util/hearts/fullHeart.png";
 
@@ -58,6 +61,8 @@ const initialState = {
     shield: 0,
     shotDelay: 500,
     slowPower: false,
+    bombs: false,
+    bouncingBullets: false,
   },
   enemy: {
     enemies: [],
@@ -103,6 +108,12 @@ let killsNextUpgrade = 2;
 let killsForUpgrade = 2;
 let choosingPower = false;
 let hearts = 3;
+
+let lastBombTime = 0;
+let bombDelay = 10000;
+let bombs = [];
+let bombRadius = 100;
+let bombDamage = 2;
 
 let moveUp = false;
 let moveDown = false;
@@ -216,6 +227,20 @@ function shoot() {
   }
 }
 
+function spawnBomb() {
+  if (Date.now() - lastBombTime > bombDelay) {
+    bombs.push({
+      x: shipX + shipSize.width / 2,
+      y: shipY,
+      targetX: Math.random() * (canvas.width - 100) + 50,
+      targetY: Math.random() * (canvas.height * 0.25),
+      placed: false,
+    });
+
+    lastBombTime = Date.now();
+  }
+}
+
 function releaseEnemy() {
   if (
     Date.now() - enemyState.lastEnemyReleased >
@@ -255,17 +280,16 @@ function releaseEnemy() {
 }
 
 function restartGame() {
-  Object.assign(playerState, initialState.player);
-  Object.assign(enemyState, initialState.enemy);
-  Object.assign(enemyState2, initialState.enemy2);
+  playerState = { ...initialState.player };
+  enemyState = { ...initialState.enemy };
+  enemyState2 = { ...initialState.enemy2 };
   bullets = [];
-
+  bombs = [];
   hearts = 3;
   kills = 0;
-
+  enemySpeed = 0.4;
   shipX = canvas.width / 2;
   shipY = canvas.height - 80;
-
   killsNextUpgrade = 2;
   killsForUpgrade = 2;
 }
@@ -398,6 +422,29 @@ function drawGame() {
     if (b.y < 0) bullets.splice(i, 1);
   });
 
+  // criar bomba
+  if (playerState.bombs) {
+    spawnBomb();
+  }
+
+  bombs.forEach((b, i) => {
+    if (!b.placed) {
+      let dx = b.targetX - b.x;
+      let dy = b.targetY - b.y;
+
+      let dist = Math.sqrt(dx * dx + dy * dy);
+
+      b.x += (dx / dist) * 3;
+      b.y += (dy / dist) * 3;
+
+      if (dist < 5) {
+        b.placed = true;
+      }
+    }
+
+    context.drawImage(bomb, b.x - 20, b.y - 20, 40, 40);
+  });
+
   // colisões
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = enemyState.enemies.length - 1; j >= 0; j--) {
@@ -427,6 +474,40 @@ function drawGame() {
   }
 
   // inimigos
+  bombs.forEach((b, bi) => {
+    enemyState.enemies.forEach((e, ei) => {
+      // colisão direta com a bomba
+      if (
+        b.x > e.x &&
+        b.x < e.x + e.size.width &&
+        b.y > e.y &&
+        b.y < e.y + e.size.height
+      ) {
+        // explosão em área
+        for (let i = enemyState.enemies.length - 1; i >= 0; i--) {
+          let enemy = enemyState.enemies[i];
+          let index = i;
+          let ex = enemy.x + enemy.size.width / 2;
+          let ey = enemy.y + enemy.size.height / 2;
+
+          let dist = Math.hypot(ex - b.x, ey - b.y);
+
+          if (dist < bombRadius) {
+            enemy.life -= bombDamage;
+
+            if (enemy.life <= 0) {
+              enemyState.enemies.splice(index, 1);
+              kills++;
+            }
+          }
+        }
+
+        // remover bomba
+        bombs.splice(bi, 1);
+      }
+    });
+  });
+
   enemyState.enemies.forEach((e, i) => {
     e.y += e.speed;
     e.rotation += 0.01;

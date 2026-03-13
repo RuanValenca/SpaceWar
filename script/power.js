@@ -23,7 +23,7 @@ export const powers = [
     name: "Projétil com Ricochete",
     desc: "tiros ricocheteiam nas paredes e inimigos",
     effect: () => {
-      playerState.shotDelay = 300;
+      playerState.bouncingBullets = true;
     },
   },
   {
@@ -31,41 +31,49 @@ export const powers = [
     name: "Bombas",
     desc: "lança bombas que explodem ao atingir inimigos ou o chão",
     effect: () => {
-      playerState.shotDelay = 300;
+      playerState.bombs = true;
     },
   },
-  {
-    id: "shield",
-    name: "Escudo",
-    desc: "bloqueia 1 dano",
-    effect: () => {
-      playerState.shield++;
-    },
-  },
-  {
-    id: "reflectedBullets",
-    name: "Balas Refletidas",
-    desc: "atira projéteis para os lados",
-    effect: () => {
-      playerState.reflectedBullets = true;
-    },
-  },
-  {
-    id: "slowPower",
-    name: "Desaceleração",
-    desc: "desacelera inimigos por um tempo",
-    effect: () => {
-      playerState.slowPower = true;
-    },
-  },
-  {
-    id: "dash",
-    name: "Turbo",
-    desc: "move-se rapidamente em uma direção",
-    effect: () => {
-      playerState.dash = true;
-    },
-  },
+  // {
+  //   id: "shield",
+  //   name: "Escudo",
+  //   desc: "bloqueia 1 dano",
+  //   effect: () => {
+  //     playerState.shield++;
+  //   },
+  // },
+  // {
+  //   id: "reflectedBullets",
+  //   name: "Balas Refletidas",
+  //   desc: "atira projéteis para os lados",
+  //   effect: () => {
+  //     playerState.reflectedBullets = true;
+  //   },
+  // },
+  // {
+  //   id: "speed",
+  //   name: "Aceleração",
+  //   desc: "aumenta a velocidade da nave",
+  //   effect: () => {
+  //     playerState.speed = 5;
+  //   },
+  // },
+  // {
+  //   id: "slowPower",
+  //   name: "Desaceleração",
+  //   desc: "desacelera inimigos por um tempo",
+  //   effect: () => {
+  //     playerState.slowPower = true;
+  //   },
+  // },
+  // {
+  //   id: "dash",
+  //   name: "Turbo",
+  //   desc: "move-se rapidamente em uma direção",
+  //   effect: () => {
+  //     playerState.dash = true;
+  //   },
+  // },
 ];
 
 export function showPowerCards() {
