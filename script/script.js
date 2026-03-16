@@ -143,6 +143,12 @@ let moveDown = false;
 let moveRight = false;
 let moveLeft = false;
 
+let barWidth = 120;
+let progressDisplay = 0;
+let barHeight = 14;
+let barX = canvas.width - 220;
+let barY = 15;
+
 let bullets = [];
 let lastShotTime = 0;
 
@@ -452,19 +458,57 @@ function drawGame() {
     context.translate(dx, dy);
   }
 
+  let progress = kills / killsNextUpgrade;
+  progress = Math.min(progress, 1);
+
+  // animação suave
+  progressDisplay += (progress - progressDisplay) * 0.1;
+
   // kills
+  context.save();
+
   context.fillStyle = "#E4D761";
   context.font = "bold 30px 'Press Start 2P'";
   context.textAlign = "center";
   context.fillText(kills, canvas.width - 60, 40);
 
+  context.restore();
+
+  // barra de progresso
+  context.fillStyle = "rgba(255,255,255,0.15)";
+  context.fillRect(barX, barY, barWidth, barHeight);
+
+  // progresso da barra
+  context.save();
+
+  context.shadowColor = "#61DBE4";
+  context.shadowBlur = 10;
+
+  context.fillStyle = "#617FE4";
+  context.fillRect(barX, barY, barWidth * progressDisplay, barHeight);
+
+  context.restore();
+
+  context.strokeStyle = "white";
+  context.lineWidth = 2;
+  context.strokeRect(barX, barY, barWidth, barHeight);
+
+  context.fillStyle = "white";
+  context.font = "10px 'Press Start 2P'";
+  context.textAlign = "center";
+  context.fillText(
+    Math.floor(progress * 100) + "%",
+    barX + barWidth / 2,
+    barY + 14,
+  );
+
   // corações
   for (let i = 0; i < hearts; i++) {
-    context.drawImage(life, i * 50, 10, 40, 40);
+    context.drawImage(life, 20 + i * 50, 10, 40, 40);
   }
 
   for (let i = 0; i < playerState.shield; i++) {
-    context.drawImage(shield, i * 50, 10, 40, 40);
+    context.drawImage(life, 20 + i * 50, 10, 40, 40);
   }
 
   // movimentação da nave
