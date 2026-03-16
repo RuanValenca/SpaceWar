@@ -2,52 +2,44 @@ import { resumeGame, playerState } from "./script.js";
 var cardPower = document.getElementById("cardPower");
 
 export const powers = [
+  // {
+  //   id: "damageUp",
+  //   name: "Dano Aumentado",
+  //   desc: "aumenta o dano dos tiros",
+  //   effect: () => {
+  //     playerState.shotDamage = 0.4;
+  //   },
+  // },
+  // {
+  //   id: "rapidFire",
+  //   name: "Fogo Rápido",
+  //   desc: "diminui delay do tiro",
+  //   effect: () => {
+  //     playerState.shotDelay = 300;
+  //   },
+  // },
+  // {
+  //   id: "bombs",
+  //   name: "Bombas",
+  //   desc: "lança bombas que explodem ao atingir inimigos ou o chão",
+  //   effect: () => {
+  //     playerState.bombs = true;
+  //   },
+  // },
+  // {
+  //   id: "shield",
+  //   name: "Escudo",
+  //   desc: "bloqueia 1 dano",
+  //   effect: () => {
+  //     playerState.shield++;
+  //   },
+  // },
   {
-    id: "damageUp",
-    name: "Dano Aumentado",
-    desc: "aumenta o dano dos tiros",
+    id: "scatterShot",
+    name: "Balas Espalhadas",
+    desc: "espalha o projétil quando atinge um inimigo",
     effect: () => {
-      playerState.shotDamage = 0.3;
-    },
-  },
-  {
-    id: "rapidFire",
-    name: "Fogo Rápido",
-    desc: "diminui delay do tiro",
-    effect: () => {
-      playerState.shotDelay = 300;
-    },
-  },
-  {
-    id: "boucingBullets",
-    name: "Projétil com Ricochete",
-    desc: "tiros ricocheteiam nas paredes e inimigos",
-    effect: () => {
-      playerState.bouncingBullets = true;
-    },
-  },
-  {
-    id: "bombs",
-    name: "Bombas",
-    desc: "lança bombas que explodem ao atingir inimigos ou o chão",
-    effect: () => {
-      playerState.bombs = true;
-    },
-  },
-  {
-    id: "shield",
-    name: "Escudo",
-    desc: "bloqueia 1 dano",
-    effect: () => {
-      playerState.shield++;
-    },
-  },
-  {
-    id: "reflectedBullets",
-    name: "Balas Refletidas",
-    desc: "atira projéteis para os lados",
-    effect: () => {
-      playerState.reflectedBullets = true;
+      playerState.scatterShot = true;
     },
   },
   {
@@ -72,6 +64,14 @@ export const powers = [
     desc: "move-se rapidamente em uma direção",
     effect: () => {
       playerState.dash = true;
+    },
+  },
+  {
+    id: "laser",
+    name: "Laser",
+    desc: "dispara um raio laser poderoso",
+    effect: () => {
+      playerState.laser = true;
     },
   },
 ];

@@ -33,6 +33,9 @@ space.src = "./img/util/bg/space.png";
 let ship = new Image();
 ship.src = "./img/ships/defaultBlue.png";
 
+let bullet = new Image();
+bullet.src = "./img/util/effects/bullet.png";
+
 let bomb = new Image();
 bomb.src = "./img/util/effects/fireball.png";
 
@@ -41,6 +44,9 @@ life.src = "./img/util/hearts/fullHeart.png";
 
 let shield = new Image();
 shield.src = "./img/util/hearts/shield (2).png";
+
+let laserBeam = new Image();
+laserBeam.src = "./img/util/effects/laserBeam.png";
 
 let enemyAsteroid1 = new Image();
 enemyAsteroid1.src = "./img/enemies/asteroidGray.png";
@@ -52,6 +58,7 @@ enemyAsteroid2.src = "./img/enemies/asteroidBrown.png";
 const shipSize = { width: 40, height: 40 };
 
 let currentTime = Date.now();
+let lastFrameTime = Date.now();
 let paused = false;
 
 const initialState = {
@@ -59,13 +66,13 @@ const initialState = {
     speed: 3,
     dash: false,
     doubleShot: false,
-    shotDamage: 0.2,
-    reflectedBullets: false,
+    shotDamage: 0.3,
+    scatterShot: false,
     shield: 0,
     shotDelay: 500,
     slowPower: false,
     bombs: false,
-    bouncingBullets: false,
+    laser: false,
   },
   enemy: {
     enemies: [],
@@ -100,6 +107,8 @@ export let enemyState2 = { ...initialState.enemy2 };
 let shipX = canvas.width / 2;
 let shipY = canvas.height - 80;
 
+let shipCenter = shipX + shipSize.width / 2;
+
 let shipRotation = 0;
 let targetRotation = 0;
 
@@ -119,9 +128,15 @@ let bombRadius = 100;
 let bombDamage = 2;
 
 let lastSlowPowerTime = 0;
-let slowPowerDelay = 10000;
-let slowPowerDuration = 5000;
+let slowPowerDelay = 25000;
+let slowPowerDuration = 4000;
 let slowActive = false;
+
+let lasers = [];
+let laserDamage = 1;
+let lastLaserTime = 0;
+let laserDelay = 15000;
+let laserTimeDuration = 1500;
 
 let moveUp = false;
 let moveDown = false;
@@ -144,9 +159,9 @@ window.addEventListener("keydown", (e) => {
   if (playerState.dash == true && e.key == "Shift") {
     if (Date.now() - lastTimeDashed > dashDelay) {
       lastTimeDashed = Date.now();
-      playerState.speed += 10;
+      playerState.speed *= 5;
       setTimeout(() => {
-        playerState.speed -= 5;
+        playerState.speed /= 5;
       }, 100);
     }
   }
@@ -229,16 +244,36 @@ audio.addEventListener("click", () => {
 // funções do jogo
 function shoot() {
   if (Date.now() - lastShotTime > playerState.shotDelay) {
-    bullets.push({ x: shipX + shipSize.width / 2, y: shipY });
+    bullets.push({ x: shipCenter, y: shipY });
     lastShotTime = Date.now();
     shootSound.play();
+  }
+}
+
+function shootLaser() {
+  if (Date.now() - lastLaserTime > laserDelay) {
+    let target = enemyState.enemies[0];
+
+    lasers.push({
+      x: shipCenter,
+      y: shipY,
+      target: target,
+      targetX: target ? target.x + target.size.width / 2 : shipCenter,
+      targetY: target ? target.y + target.size.height / 2 : shipY,
+    });
+
+    setTimeout(() => {
+      lasers.splice(0, 1);
+    }, laserTimeDuration);
+
+    lastLaserTime = Date.now();
   }
 }
 
 function spawnBomb() {
   if (Date.now() - lastBombTime > bombDelay) {
     bombs.push({
-      x: shipX + shipSize.width / 2,
+      x: shipCenter,
       y: shipY,
       targetX: Math.random() * (canvas.width - 100) + 50,
       targetY: Math.random() * (canvas.height * 0.25),
@@ -288,6 +323,7 @@ function releaseEnemy() {
       size: initialState.enemy.size,
       sprite: enemyAsteroid1,
       hitTime: 0,
+      dead: false,
     });
 
     enemyState.lastEnemyReleased = Date.now();
@@ -307,6 +343,7 @@ function releaseEnemy() {
       size: initialState.enemy2.size,
       sprite: enemyAsteroid2,
       hitTime: 0,
+      dead: false,
     });
 
     enemyState2.lastEnemyReleased2 = Date.now();
@@ -323,6 +360,7 @@ function restartGame() {
 
   bullets = [];
   bombs = [];
+  lasers = [];
 
   hearts = 3;
   kills = 0;
@@ -335,6 +373,7 @@ function restartGame() {
 
   lastShotTime = 0;
   lastBombTime = 0;
+  lastLaserTime = 0;
   lastSlowPowerTime = 0;
   lastTimeDashed = 0;
 
@@ -344,6 +383,10 @@ function restartGame() {
 }
 
 function drawGame() {
+  let now = Date.now();
+  let deltaTime = (now - lastFrameTime) / 1000; // em segundos
+  lastFrameTime = now;
+
   if (
     canvas.width !== window.innerWidth ||
     canvas.height !== window.innerHeight
@@ -425,6 +468,9 @@ function drawGame() {
   }
 
   // movimentação da nave
+
+  shipCenter = shipX + shipSize.width / 2;
+
   if (moveLeft) {
     shipX -= playerState.speed;
   }
@@ -450,7 +496,7 @@ function drawGame() {
 
   context.save();
 
-  context.translate(shipX + shipSize.width / 2, shipY + shipSize.height / 2);
+  context.translate(shipCenter, shipY + shipSize.height / 2);
 
   context.rotate(shipRotation);
 
@@ -469,10 +515,16 @@ function drawGame() {
     let b = bullets[i];
     b.x += b.vx || 0;
     b.y += b.vy || -10;
-    context.beginPath();
-    context.arc(b.x, b.y, 3, 0, Math.PI * 2);
-    context.fillStyle = "white";
-    context.fill();
+
+    context.save();
+
+    context.translate(b.x, b.y);
+
+    context.rotate(b.angle || 0);
+
+    context.drawImage(bullet, -10, -25, 20, 50);
+
+    context.restore();
 
     if (b.y < 0) bullets.splice(i, 1);
   }
@@ -505,6 +557,47 @@ function drawGame() {
     context.drawImage(bomb, b.x - 20, b.y - 20, 40, 40);
   });
 
+  // criar laser
+  if (playerState.laser) {
+    shootLaser();
+  }
+
+  lasers.forEach((l, i) => {
+    let dx = l.targetX - l.x;
+    let dy = l.targetY - l.y;
+
+    let dist = Math.sqrt(dx * dx + dy * dy);
+
+    l.x += (dx / dist) * 3;
+    l.y += (dy / dist) * 3;
+
+    if (dist > 0) {
+      l.x += (dx / dist) * 3;
+      l.y += (dy / dist) * 3;
+    }
+
+    if (l.target) {
+      l.targetX = l.target.x + l.target.size.width / 2;
+      l.targetY = l.target.y + l.target.size.height / 2;
+    }
+
+    // brilho externo
+    context.beginPath();
+    context.moveTo(shipCenter, shipY + shipSize.height / 2);
+    context.lineTo(l.targetX, l.targetY);
+    context.strokeStyle = "rgba(0,255,255,0.4)";
+    context.lineWidth = 10;
+    context.stroke();
+
+    // linha principal
+    context.beginPath();
+    context.moveTo(shipCenter, shipY + shipSize.height / 2);
+    context.lineTo(l.targetX, l.targetY);
+    context.strokeStyle = "#00ffff";
+    context.lineWidth = 3;
+    context.stroke();
+  });
+
   // colisões
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = enemyState.enemies.length - 1; j >= 0; j--) {
@@ -524,12 +617,13 @@ function drawGame() {
         e.life -= playerState.shotDamage;
         e.hitTime = Date.now();
 
-        if (playerState.reflectedBullets && !bullets[i].reflected) {
+        if (playerState.scatterShot && !bullets[i].reflected) {
           bullets.push({
             x: bullets[i].x,
             y: bullets[i].y,
             vx: -4,
             vy: -8,
+            angle: -0.5,
             reflected: true,
             ignoreEnemy: j,
           });
@@ -539,6 +633,7 @@ function drawGame() {
             y: bullets[i].y,
             vx: 4,
             vy: -8,
+            angle: 0.5,
             reflected: true,
             ignoreEnemy: j,
           });
@@ -589,6 +684,23 @@ function drawGame() {
         bombs.splice(bi, 1);
       }
     });
+  });
+
+  lasers.forEach((l, li) => {
+    let e = l.target;
+
+    if (!e || e.dead) return;
+
+    e.life -= laserDamage * deltaTime;
+
+    if (e.life <= 0) {
+      e.dead = true;
+      kills++;
+      lasers.splice(li, 1);
+
+      let index = enemyState.enemies.indexOf(e);
+      if (index !== -1) enemyState.enemies.splice(index, 1);
+    }
   });
 
   enemyState.enemies.forEach((e, i) => {
