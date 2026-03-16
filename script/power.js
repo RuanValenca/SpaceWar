@@ -2,38 +2,38 @@ import { resumeGame, playerState } from "./script.js";
 var cardPower = document.getElementById("cardPower");
 
 export const powers = [
-  // {
-  //   id: "damageUp",
-  //   name: "Dano Aumentado",
-  //   desc: "aumenta o dano dos tiros",
-  //   effect: () => {
-  //     playerState.shotDamage = 0.4;
-  //   },
-  // },
-  // {
-  //   id: "rapidFire",
-  //   name: "Fogo Rápido",
-  //   desc: "diminui delay do tiro",
-  //   effect: () => {
-  //     playerState.shotDelay = 300;
-  //   },
-  // },
-  // {
-  //   id: "bombs",
-  //   name: "Bombas",
-  //   desc: "lança bombas que explodem ao atingir inimigos ou o chão",
-  //   effect: () => {
-  //     playerState.bombs = true;
-  //   },
-  // },
-  // {
-  //   id: "shield",
-  //   name: "Escudo",
-  //   desc: "bloqueia 1 dano",
-  //   effect: () => {
-  //     playerState.shield++;
-  //   },
-  // },
+  {
+    id: "damageUp",
+    name: "Dano Aumentado",
+    desc: "aumenta o dano dos tiros",
+    effect: () => {
+      playerState.shotDamage = 0.4;
+    },
+  },
+  {
+    id: "rapidFire",
+    name: "Fogo Rápido",
+    desc: "diminui delay do tiro",
+    effect: () => {
+      playerState.shotDelay = 300;
+    },
+  },
+  {
+    id: "bombs",
+    name: "Bombas",
+    desc: "lança bombas que explodem ao atingir inimigos ou o chão",
+    effect: () => {
+      playerState.bombs = true;
+    },
+  },
+  {
+    id: "shield",
+    name: "Escudo",
+    desc: "bloqueia 1 dano",
+    effect: () => {
+      playerState.shield++;
+    },
+  },
   {
     id: "scatterShot",
     name: "Balas Espalhadas",
