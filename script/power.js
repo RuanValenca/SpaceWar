@@ -21,7 +21,7 @@ export const powers = [
   {
     id: "bombs",
     name: "Bombas",
-    desc: "lança bombas que explodem ao atingir inimigos ou o chão",
+    desc: "lança bombas a cada 15s que explodem ao atingir inimigos ou o chão",
     effect: () => {
       playerState.bombs = true;
     },
@@ -61,7 +61,7 @@ export const powers = [
   {
     id: "dash",
     name: "Turbo",
-    desc: "move-se rapidamente em uma direção",
+    desc: "move-se rapidamente em uma direção [SHIFT]",
     effect: () => {
       playerState.dash = true;
     },
@@ -69,7 +69,7 @@ export const powers = [
   {
     id: "laser",
     name: "Laser",
-    desc: "dispara um raio laser poderoso",
+    desc: "dispara um raio laser poderoso com dano por segundo por 3s",
     effect: () => {
       playerState.laser = true;
     },
