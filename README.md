@@ -1,4 +1,4 @@
-<img width="1279" height="719" alt="image" src="./img/prevSpaceWar.gif" />
+<img width="1279" height="400" alt="image" src="./img/prevSpaceWar.gif" />
 # Space War
 
 ## Descrição
