@@ -1,4 +1,4 @@
-<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/9462f830-f2dc-4cfb-b8b2-9205e0b15261" />
+<img width="1279" height="719" alt="image" src="./img/prevSpaceWar.gif" />
 # Space War
 
 ## Descrição
